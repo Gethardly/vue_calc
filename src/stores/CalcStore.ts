@@ -1,64 +1,120 @@
 import { defineStore } from 'pinia'
 
-export const useCalcStore = defineStore('calc', {
+export const useCalcStore = defineStore('calculator', {
     state: () => ({
-        x: 0,
-        y: 0,
+        inputValue: '',
         result: 0,
+        operation: '',
+        error: '',
     }),
     actions: {
-        add() {
-            this.result = this.x + this.y
+        validateLastCharacter() {
+            const lastCharacter = this.inputValue[this.inputValue.length - 1]
+            return this.operations.includes(lastCharacter)
         },
-        subtract() {
-            this.result = this.x - this.y
+        filterInput() {
+            this.inputValue = this.inputValue.replace(/[^0-9+\-*/.]/g, '')
         },
-        multiplthis() {
-            this.result = this.x * this.y
+        setOperation(op: string) {
+            this.operation = op
+            const regex = /[a-zA-Z]/
+
+            if (
+                !regex.test(op) &&
+                op !== '**' &&
+                this.inputValue.length !== 0 &&
+                !this.validateLastCharacter()
+            ) {
+                this.inputValue += op
+            }
         },
-        divide() {
-            if (this.y !== 0) {
-                this.result = this.x / this.y
+        evaluateExpression(expression: string) {
+            return eval(expression)
+        },
+        squareRoot(expression: string) {
+            return Math.sqrt(eval(expression))
+        },
+        factorial(expression: string) {
+            return this.factorialHelper(eval(expression))
+        },
+        log10(expression: string) {
+            return Math.log10(eval(expression))
+        },
+        sin(expression: string) {
+            return Math.sin(eval(expression))
+        },
+        cos(expression: string) {
+            return Math.cos(eval(expression))
+        },
+        tan(expression: string) {
+            return Math.tan(eval(expression))
+        },
+        calculatePercentageAnywhere(expression: string) {
+            const regex = /([-+]?\d*\.?\d+)(%)/g
+            return expression.replace(regex, (match, value, _) => {
+                return String(parseFloat(value) / 100)
+            })
+        },
+        factorialHelper(n: number) {
+            if (n === 0 || n === 1) {
+                return 1
+            }
+            return n * this.factorialHelper(n - 1)
+        },
+        calculateResult() {
+            let expression = this.inputValue
+            if (expression.includes('%')) {
+                expression = this.calculatePercentageAnywhere(expression)
+            }
+            if (this.validateLastCharacter()) {
+                this.inputValue = this.inputValue.slice(0, -1)
             } else {
-                throw new Error('Division by zero is not allowed.')
+                try {
+                    switch (this.operation) {
+                        case 'sqrt':
+                            this.result = this.squareRoot(expression)
+                            break
+                        case 'factorial':
+                            this.result = this.factorial(expression)
+                            break
+                        case 'log':
+                            this.result = this.log10(expression)
+                            break
+                        case 'sin':
+                            this.result = this.sin(expression)
+                            break
+                        case 'cos':
+                            this.result = this.cos(expression)
+                            break
+                        case 'tan':
+                            this.result = this.tan(expression)
+                            break
+                        default:
+                            this.result = this.evaluateExpression(expression)
+                    }
+                    this.inputValue = ''
+                } catch (e) {
+                    this.error = 'Invalid input or operation'
+                }
             }
         },
-        power() {
-            this.result = Math.pow(this.x, this.y)
-        },
-        squareRoot() {
-            if (this.x >= 0) {
-                this.result = Math.sqrt(this.x)
-            } else {
-                throw new Error(
-                    'Square root of a negative number is not allowed.',
-                )
-            }
-        },
-        factorial() {
-            let result = 1
-            for (let i = 2; i <= this.x; i++) {
-                result *= i
-            }
-            this.result = result
-        },
-        log10() {
-            if (this.x > 0) {
-                this.result = Math.log10(this.x)
-            } else {
-                throw new Error(
-                    'Logarithm of a non-positive number is not allowed.',
-                )
-            }
-        },
-        sin() {
-            this.result = Math.sin(this.x)
-        },
-        cos() {
-            this.result = Math.cos(this.x)
-        },
-        tan() {
-            this.result = Math.tan(this.x)
+    },
+    getters: {
+        operations() {
+            return [
+                '+',
+                '-',
+                '*',
+                '/',
+                '**',
+                'sqrt',
+                'factorial',
+                'log',
+                'sin',
+                'cos',
+                'tan',
+                '%',
+            ]
         },
     },
 })
