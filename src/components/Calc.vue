@@ -6,7 +6,7 @@
   <div class='flex justify-center'>
     <q-card class='Card'>
       <div class='q-ma-md'>
-        <q-input type='text' v-model='calcStore.inputValue' outlined label='Введите значения' />
+        <q-input type='text' id='mainInput' v-model='calcStore.inputValue' outlined label='Введите значения' />
       </div>
       <q-card-actions class='card q-ma-md'>
         <q-card-actions class='card q-ma-md'>
@@ -49,9 +49,14 @@ const allowedCharacters = [...calcStore.operations]
 allowedCharacters.push('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace')
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    event.preventDefault()
-    document.getElementById('equal').click()
+  switch (event.key) {
+    case 'Enter':
+      event.preventDefault()
+      document.getElementById('equal').click()
+      break
+    case 'F5':
+      document.location.reload()
+      break
   }
   allowedCharacters.forEach((key) => {
     if (key === event.key) {
