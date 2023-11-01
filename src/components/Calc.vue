@@ -31,7 +31,7 @@
             </div>
           </div>
           <div class='q-pa-md full-width'>
-            <q-btn color='primary' style='font-size: 20px' class='full-width' label='='
+            <q-btn color='primary' style='font-size: 20px' class='full-width' id='equal' label='='
                    @click='calcStore.calculateResult' />
           </div>
         </q-card-actions>
@@ -49,11 +49,14 @@ const allowedCharacters = [...calcStore.operations]
 allowedCharacters.push('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'Backspace')
 
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    document.getElementById('equal').click()
+  }
   allowedCharacters.forEach((key) => {
     if (key === event.key) {
+      event.preventDefault()
       document.getElementById(key)?.click()
-    } else if (event.key === 'Enter' || event.key === '=') {
-      calcStore.calculateResult()
     } else {
       event.preventDefault()
     }

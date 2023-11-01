@@ -5,7 +5,6 @@ export const useCalcStore = defineStore('calculator', {
     state: () => ({
         inputValue: '',
         operation: '',
-        error: '',
     }),
     getters: {
         operations() {
@@ -34,8 +33,12 @@ export const useCalcStore = defineStore('calculator', {
             this.inputValue = this.inputValue.slice(0, -1)
         },
         validateLastCharacter() {
+            const exceptionCharacters = ['(', ')', '.', '%']
             const lastCharacter = this.inputValue[this.inputValue.length - 1]
-            if (this.operations.includes(lastCharacter)) {
+            if (
+                this.operations.includes(lastCharacter) &&
+                !exceptionCharacters.includes(lastCharacter)
+            ) {
                 this.inputValue = this.inputValue.slice(0, -1)
             }
         },
@@ -44,7 +47,10 @@ export const useCalcStore = defineStore('calculator', {
             const regex = /[a-zA-Z]/
 
             if (!regex.test(op) && op !== 'ce') {
-                if (
+                const exceptionCharacters = ['(', '.']
+                if (exceptionCharacters.includes(op)) {
+                    this.inputValue += op
+                } else if (
                     this.inputValue.length !== 0 &&
                     !this.validateLastCharacter()
                 ) {
@@ -109,10 +115,10 @@ export const useCalcStore = defineStore('calculator', {
                     default:
                         this.inputValue = this.evaluateExpression(
                             this.inputValue,
-                        )
+                        ).toString()
                 }
             } catch (e) {
-                return (this.error = 'Invalid input or operation')
+                this.inputValue = 'Invalid input or operation'
             }
         },
     },
