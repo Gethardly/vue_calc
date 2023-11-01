@@ -1,59 +1,81 @@
 import { defineStore } from 'pinia'
+import * as math from 'mathjs'
 
 export const useCalcStore = defineStore('calculator', {
     state: () => ({
         inputValue: '',
-        result: 0,
         operation: '',
         error: '',
     }),
+    getters: {
+        operations() {
+            return [
+                'ce',
+                '+',
+                '-',
+                '*',
+                '/',
+                '%',
+                '^',
+                'sqrt',
+                'x!',
+                'log',
+                'sin',
+                'cos',
+                'tan',
+                '(',
+                ')',
+                '.',
+            ]
+        },
+    },
     actions: {
+        backspaceValue() {
+            this.inputValue = this.inputValue.slice(0, -1)
+        },
         validateLastCharacter() {
             const lastCharacter = this.inputValue[this.inputValue.length - 1]
-            return this.operations.includes(lastCharacter)
-        },
-        filterInput() {
-            this.inputValue = this.inputValue.replace(/[^0-9+\-*/.]/g, '')
+            if (this.operations.includes(lastCharacter)) {
+                this.inputValue = this.inputValue.slice(0, -1)
+            }
         },
         setOperation(op: string) {
             this.operation = op
             const regex = /[a-zA-Z]/
 
-            if (
-                !regex.test(op) &&
-                op !== '**' &&
-                this.inputValue.length !== 0 &&
-                !this.validateLastCharacter()
-            ) {
-                this.inputValue += op
+            if (!regex.test(op) && op !== 'ce') {
+                if (
+                    this.inputValue.length !== 0 &&
+                    !this.validateLastCharacter()
+                ) {
+                    this.inputValue += op
+                }
+            } else if (op === 'ce') {
+                this.inputValue = ''
+            } else if (regex.test(op)) {
+                this.calculateResult()
             }
         },
         evaluateExpression(expression: string) {
-            return eval(expression)
+            return math.evaluate(expression)
         },
         squareRoot(expression: string) {
-            return Math.sqrt(eval(expression))
+            return Math.sqrt(this.evaluateExpression(expression))
         },
         factorial(expression: string) {
-            return this.factorialHelper(eval(expression))
+            return this.factorialHelper(this.evaluateExpression(expression))
         },
         log10(expression: string) {
-            return Math.log10(eval(expression))
+            return Math.log10(this.evaluateExpression(expression))
         },
         sin(expression: string) {
-            return Math.sin(eval(expression))
+            return Math.sin(this.evaluateExpression(expression))
         },
         cos(expression: string) {
-            return Math.cos(eval(expression))
+            return Math.cos(this.evaluateExpression(expression))
         },
         tan(expression: string) {
-            return Math.tan(eval(expression))
-        },
-        calculatePercentageAnywhere(expression: string) {
-            const regex = /([-+]?\d*\.?\d+)(%)/g
-            return expression.replace(regex, (match, value, _) => {
-                return String(parseFloat(value) / 100)
-            })
+            return Math.tan(this.evaluateExpression(expression))
         },
         factorialHelper(n: number) {
             if (n === 0 || n === 1) {
@@ -62,59 +84,36 @@ export const useCalcStore = defineStore('calculator', {
             return n * this.factorialHelper(n - 1)
         },
         calculateResult() {
-            let expression = this.inputValue
-            if (expression.includes('%')) {
-                expression = this.calculatePercentageAnywhere(expression)
-            }
-            if (this.validateLastCharacter()) {
-                this.inputValue = this.inputValue.slice(0, -1)
-            } else {
-                try {
-                    switch (this.operation) {
-                        case 'sqrt':
-                            this.result = this.squareRoot(expression)
-                            break
-                        case 'factorial':
-                            this.result = this.factorial(expression)
-                            break
-                        case 'log':
-                            this.result = this.log10(expression)
-                            break
-                        case 'sin':
-                            this.result = this.sin(expression)
-                            break
-                        case 'cos':
-                            this.result = this.cos(expression)
-                            break
-                        case 'tan':
-                            this.result = this.tan(expression)
-                            break
-                        default:
-                            this.result = this.evaluateExpression(expression)
-                    }
-                    this.inputValue = ''
-                } catch (e) {
-                    this.error = 'Invalid input or operation'
+            this.validateLastCharacter()
+            const expression = this.inputValue
+            try {
+                switch (this.operation) {
+                    case 'sqrt':
+                        this.inputValue = this.squareRoot(expression).toString()
+                        break
+                    case 'x!':
+                        this.inputValue = this.factorial(expression).toString()
+                        break
+                    case 'log':
+                        this.inputValue = this.log10(expression).toString()
+                        break
+                    case 'sin':
+                        this.inputValue = this.sin(expression).toString()
+                        break
+                    case 'cos':
+                        this.inputValue = this.cos(expression).toString()
+                        break
+                    case 'tan':
+                        this.inputValue = this.tan(expression).toString()
+                        break
+                    default:
+                        this.inputValue = this.evaluateExpression(
+                            this.inputValue,
+                        )
                 }
+            } catch (e) {
+                return (this.error = 'Invalid input or operation')
             }
-        },
-    },
-    getters: {
-        operations() {
-            return [
-                '+',
-                '-',
-                '*',
-                '/',
-                '**',
-                'sqrt',
-                'factorial',
-                'log',
-                'sin',
-                'cos',
-                'tan',
-                '%',
-            ]
         },
     },
 })
